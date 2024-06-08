@@ -1,0 +1,66 @@
+body {
+  background-color: #222; /* Dark background for the whole page */
+  color: white; /* White text for the entire page */
+  font-family: Arial, sans-serif;
+}
+
+.App {
+  font-family: sans-serif;
+  text-align: center;
+  background-color: #222; /* Consistent background color */
+  color: white; /* White text */
+}
+
+svg {
+  display: block;
+  margin: 0 auto;
+  background-color: white; /* Ensure SVG background is white */
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000; /* Black stroke for axis lines */
+  shape-rendering: geometricPrecision;
+}
+
+.area {
+  fill-opacity: 0.5;
+}
+
+#tooltip {
+  display: none;
+  position: absolute;
+  background-color: white; /* White background for tooltip */
+  padding: 5px;
+  border: 1px solid black;
+  color: black; /* Black text for tooltip */
+}
+
+.y-axis-label,
+.x-axis-label {
+  fill: black; /* Black text for axis labels */
+}
+
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+.dot1 {
+  stroke: black;
+  stroke-width: 1px;
+  fill: red; /* Red fill for first dataset dots */
+}
+
+.dot2 {
+  stroke: black;
+  stroke-width: 1px;
+  fill: orange; /* Orange fill for second dataset dots */
+}
+
+.tooltip {
+  fill: black;
+  font-size: 12px;
+  pointer-events: none;
+}
