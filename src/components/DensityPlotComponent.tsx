@@ -56,11 +56,6 @@ const DensityPlotComponent = () => {
     <div>
       <h2>Data Density Plot</h2>
       <DensityPlotter bandwidth={7} datasets={[Data1,Data2]} labels={[Data1Labels,Data2Labels]} />
-      <DensityPlotterUno
-        bandwidth={4}
-        Data={Data1}
-        DataLabels={Data1Labels}
-      />
     </div>
   );
 };

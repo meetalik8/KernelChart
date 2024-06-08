@@ -1,6 +1,5 @@
 import React from "react";
 import "./App.css";
-import Curve from "./components/Curve";
 import DensityPlotComponent from "./components/DensityPlotComponent";
 
 export interface DataPoint {
@@ -12,7 +11,6 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <DensityPlotComponent/>
-      <Curve/>
     </div>
   );
 };
