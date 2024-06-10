@@ -47,17 +47,7 @@ svg {
   stroke-width: 1.5px;
 }
 
-.dot1 {
-  stroke: black;
-  stroke-width: 1px;
-  fill: red; /* Red fill for first dataset dots */
-}
 
-.dot2 {
-  stroke: black;
-  stroke-width: 1px;
-  fill: orange; /* Orange fill for second dataset dots */
-}
 
 .tooltip {
   fill: black;
