@@ -10,11 +10,31 @@ function kernelDensityEstimator(kernel: (v: number) => number, x: number[]) {
   };
 }
 
+// function epanechnikovKernel(defaultScale: number, extremeScale: number) {
+//   return function (u: number) {
+//     const scale = Math.abs(u) >= 1000000 ? extremeScale : defaultScale;
+//     console.log(`Scale: ${scale}`)
+//     // console.log(Math.abs((u /= scale)) <= 1 ? (0.75 * (1 - u * u)) / scale:0)
+//     return Math.abs((u /= scale)) <= 1 ? (0.75 * (1 - u * u)) / scale : 0;
+//   };
+// }
+
 function epanechnikovKernel(scale: number) {
   return function (u: number) {
     return Math.abs((u /= scale)) <= 1 ? (0.75 * (1 - u * u)) / scale : 0;
   };
 }
+function calculateBandwidth(
+  defaultBandwidth: number,
+  datasets: number[][]
+): number {
+  const hasExtremeValues = datasets.some((data) =>
+    data.some((value) => Math.abs(value) > 100000)
+  );
+  return hasExtremeValues ? 1000 : defaultBandwidth;
+}
+
+
 function calculateMultiplier(stdDevData: number): number {
   if (stdDevData < 10) {
     return 5; 
@@ -27,9 +47,9 @@ const DensityPlotter: React.FC<{
   datasets: number[][];
   labels: string[][];
 }> = ({ bandwidth, datasets, labels }) => {
-   if (bandwidth > 20) {
-     alert("Bandwidth should be less than or equal to 20!");
-   }
+  //  if (bandwidth > 20) {
+  //    alert("Bandwidth should be less than or equal to 20!");
+  //  }
   const svgRef = useRef<SVGSVGElement | null>(null);
   const margin = { top: 20, right: 30, bottom: 50, left: 50 };
   const width = 960 - margin.left - margin.right;
@@ -50,6 +70,7 @@ const DensityPlotter: React.FC<{
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
+    const defaultbandwidth = bandwidth;
     const allData = datasets.flat();
     const meanData = d3.mean(allData)!;
     console.log(`Mean of all ${meanData}`);
@@ -72,7 +93,9 @@ const DensityPlotter: React.FC<{
 
     const x = d3.scaleLinear().domain(xExtentAdjusted).range([0, width]);
 
-    const kernel = epanechnikovKernel(bandwidth);
+    const fbandwidth = calculateBandwidth(defaultbandwidth, datasets);
+    console.log(`final bandwidth ${fbandwidth}`)
+    const kernel = epanechnikovKernel(fbandwidth);
     const kde = kernelDensityEstimator(kernel, x.ticks(100));
     const kdeDataAll = datasets.map((data) => kde(data));
     const yMax = d3.max(kdeDataAll.flat(), (d) => d[1]) || 1;
