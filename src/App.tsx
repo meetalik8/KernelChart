@@ -1,11 +1,15 @@
 import "./App.css";
-import DensityPlotComponent from "./components/DensityPlotComponent";
+import ScatterPlotComponent from "./components/ScatterPlotComponent";
+import MyComponent from "./Trial/MyComponent";
+
+
 
 const App = () => {
 
   return (
     <div>
-      <DensityPlotComponent />
+      <MyComponent />
+      <ScatterPlotComponent />
     </div>
   );
 };

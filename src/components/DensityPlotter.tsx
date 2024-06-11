@@ -34,12 +34,11 @@ function calculateBandwidth(
   return hasExtremeValues ? 1000 : defaultBandwidth;
 }
 
-
 function calculateMultiplier(stdDevData: number): number {
   if (stdDevData < 10) {
-    return 5; 
+    return 5;
   } else {
-    return 3; 
+    return 3;
   }
 }
 const DensityPlotter: React.FC<{
@@ -47,9 +46,6 @@ const DensityPlotter: React.FC<{
   datasets: number[][];
   labels: string[][];
 }> = ({ bandwidth, datasets, labels }) => {
-  //  if (bandwidth > 20) {
-  //    alert("Bandwidth should be less than or equal to 20!");
-  //  }
   const svgRef = useRef<SVGSVGElement | null>(null);
   const margin = { top: 20, right: 30, bottom: 50, left: 50 };
   const width = 960 - margin.left - margin.right;
@@ -84,7 +80,7 @@ const DensityPlotter: React.FC<{
     console.log(`Std of all ${stdDevData}`);
     console.log(`Multiplier ${multiplier}`);
 
-    const maxStdDev = d3.max(datasets.map((data) => d3.deviation(data)|| 0))!;
+    const maxStdDev = d3.max(datasets.map((data) => d3.deviation(data) || 0))!;
 
     const xExtentAdjusted = [
       meanData - multiplier * maxStdDev,
@@ -94,13 +90,16 @@ const DensityPlotter: React.FC<{
     const x = d3.scaleLinear().domain(xExtentAdjusted).range([0, width]);
 
     const fbandwidth = calculateBandwidth(defaultbandwidth, datasets);
-    console.log(`final bandwidth ${fbandwidth}`)
+    console.log(`final bandwidth ${fbandwidth}`);
     const kernel = epanechnikovKernel(fbandwidth);
     const kde = kernelDensityEstimator(kernel, x.ticks(100));
     const kdeDataAll = datasets.map((data) => kde(data));
     const yMax = d3.max(kdeDataAll.flat(), (d) => d[1]) || 1;
     const yScaleFactor = 1.2;
-    const yKDE = d3.scaleLinear().domain([0, yMax * yScaleFactor]).range([height, 0]);
+    const yKDE = d3
+      .scaleLinear()
+      .domain([0, yMax * yScaleFactor])
+      .range([height, 0]);
     const xAxis = d3.axisBottom(x).ticks(10).tickFormat(d3.format(".0f"));
     const yAxis = d3.axisLeft(yKDE);
 
@@ -146,7 +145,6 @@ const DensityPlotter: React.FC<{
       console.log(`Mean of single data: ${mean}`);
       console.log(`STDdev of single data ${stdDev} `);
 
-
       // mean circle
       g.append("circle")
         .attr("cx", x(mean))
@@ -172,7 +170,6 @@ const DensityPlotter: React.FC<{
           g.select(".tooltip").remove();
         });
 
-        
       const kdeValues = kde(data);
       g.append("path")
         .datum(kdeValues)
