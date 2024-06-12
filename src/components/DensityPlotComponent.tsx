@@ -26,52 +26,6 @@ const DensityPlotComponent = () => {
     "A12",
     "A13",
   ];
-  const LargeDataset1 = Array.from(
-    { length: 200 },
-    () => Math.random() * 100 - 50
-  );
-  const LargeData1Labels = Array.from(
-    { length: LargeDataset1.length },
-    (_, index) => `L${index + 1}`
-  );
-  const LargeDataset2 = Array.from(
-    { length: 300 },
-    () => Math.random() * 100 - 50
-  );
-  const LargeData2Labels = Array.from(
-    { length: LargeDataset2.length },
-    (_, index) => `L${index + 1}`
-  );
-  const LargeDataset3 = Array.from(
-    { length: 500 },
-    () => Math.random() * 100 - 50
-  );
-  const LargeData3Labels = Array.from(
-    { length: LargeDataset3.length },
-    (_, index) => `L${index + 1}`
-  );
-  const LargeRangeDataset = Array.from(
-    { length: 500 },
-    () => Math.random() * 10000 - 5000
-  );
-
-  const ExtremeValuesDataset = Array.from({ length: 50 }, () => {
-    if (Math.random() < 0.5) {
-      return Math.random() * 1000000 - 500000; // Extreme positive values
-    } else {
-      return Math.random() * -1000000 + 500000; // Extreme negative values
-    }
-  });
-
-  const RandomDifferenceDataset = Array.from(
-    { length: 500 },
-    () => Math.random() * 20000 - 10000 // Values ranging from -10000 to 10000
-  );
-  const ExtremeLabels = Array.from(
-    { length: RandomDifferenceDataset.length },
-    (_, index) => `L${index + 1}`
-  );
-
   
   return (
     <div>

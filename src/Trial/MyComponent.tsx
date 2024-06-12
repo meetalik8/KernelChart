@@ -1,6 +1,7 @@
 import React from "react";
 import Scatterplot from "./ScatterPlot";
 import * as d3 from "d3";
+import DensityPlotter from "../components/DensityPlotter";
 
 // Function to generate random dataset
 const generateRandomDataset = (
@@ -29,23 +30,15 @@ const datasets = [
   ),
   generateRandomDataset(
     200,
-    [3, 3],
+    [8, 3],
     [
       [1, 0.8],
       [0.8, 1],
     ]
   ),
-  generateRandomDataset(
-    200,
-    [3, -3],
-    [
-      [1, 0.1],
-      [0.1, 1],
-    ]
-  ),
 ];
 
-const labels = ["Dataset 1", "Dataset 2","Dataset 3"];
+const labels = ["Dataset 1", "Dataset 2"];
 
 const p = 0.95;
 
@@ -58,8 +51,9 @@ const MyComponent: React.FC = () => {
         height={600}
         datasets={datasets}
         labels={labels}
-        plotType="rectangle"
+        plotType="ellipse"
         p={p}
+        bandwidth={0.1}
       />
     </div>
   );

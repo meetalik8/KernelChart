@@ -93,7 +93,18 @@ function plotErrorEllipse(
 
   return ellipseData;
 }
-
+function kernelDensityEstimator(kernel: (v: number) => number, x: number[]) {
+  return function (sample: number[]) {
+    return x.map(function (x) {
+      return [x, d3.mean(sample, (v) => kernel(x - v))!] as [number, number];
+    });
+  };
+}
+function epanechnikovKernel(scale: number) {
+  return function (u: number) {
+    return Math.abs((u /= scale)) <= 1 ? (0.75 * (1 - u * u)) / scale : 0;
+  };
+}
 const Scatterplot: React.FC<{
   width: number;
   height: number;
@@ -101,7 +112,16 @@ const Scatterplot: React.FC<{
   labels: string[];
   plotType: "ellipse" | "rectangle";
   p?: number;
-}> = ({ width, height, datasets, labels, plotType, p = 0.95 }) => {
+  bandwidth?: number;
+}> = ({
+  width,
+  height,
+  datasets,
+  labels,
+  plotType,
+  p = 0.95,
+  bandwidth = 4,
+}) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
@@ -111,7 +131,8 @@ const Scatterplot: React.FC<{
     const svg = d3.select(svgElement);
     svg.selectAll("*").remove();
     svg.style("background-color", "white");
-
+    const boundsWidth = width - MARGIN.right - MARGIN.left;
+    const boundsHeight = height - MARGIN.top - MARGIN.bottom;
     const g = svg
       .attr("width", width + MARGIN.left + MARGIN.right)
       .attr("height", height + MARGIN.top + MARGIN.bottom)
@@ -157,7 +178,7 @@ const Scatterplot: React.FC<{
       .attr("class", "x-axis-label")
       .attr("fill", "#000")
       .attr("x", width / 2)
-      .attr("y", MARGIN.bottom - 10)
+      .attr("y", MARGIN.bottom - 1)
       .attr("dy", "1em")
       .style("text-anchor", "middle");
 
@@ -175,6 +196,7 @@ const Scatterplot: React.FC<{
       .style("text-anchor", "middle");
 
     datasets.forEach((data, i) => {
+      // console.log(data);
       const color = colors[i % colors.length];
 
       g.selectAll(`.dot${i}`)
@@ -198,18 +220,20 @@ const Scatterplot: React.FC<{
 
       legend
         .append("rect")
-        .attr("x", -18)
+        .attr("x", MARGIN.right)
+        .attr("y", MARGIN.top -10)
         .attr("width", 18)
         .attr("height", 18)
         .style("fill", color);
 
       legend
         .append("text")
-        .attr("x", -24)
-        .attr("y", 9)
+        .attr("x", MARGIN.right -10)
+        .attr("y", MARGIN.top)
         .attr("dy", ".35em")
         .style("text-anchor", "end")
         .text(labels[i]);
+
       if (plotType === "rectangle") {
         [2, 3].forEach((sdMultiplier) => {
           const rectData = calculateConfidenceRectangle(
@@ -255,8 +279,45 @@ const Scatterplot: React.FC<{
             .style("stroke-dasharray", j === 1 ? "4 2" : "none");
         });
       }
+      const kdeX = kernelDensityEstimator(
+        epanechnikovKernel(bandwidth),
+        xScale.ticks(100)
+      );
+      const kdeY = kernelDensityEstimator(
+        epanechnikovKernel(bandwidth),
+        yScale.ticks(100)
+      );
+      const kdeDataX = kdeX(data.map((d) => d.x));
+      // console.log(kdeDataX);
+      const lineX = d3
+        .line()
+        .x((d) => xScale(d[0]))
+        .y((d) => yScale(d[1]))
+        .curve(d3.curveBasis);
+      g.append("path")
+        .datum(kdeDataX)
+        .attr("class", "kde-x")
+        .attr("d", lineX)
+        .attr("fill", "none")
+        .attr("stroke", color)
+        .attr("stroke-width", 1);
+
+      const kdeDataY = kdeY(data.map((d) => d.y));
+      const lineY = d3
+        .line()
+        .x((d) => xScale(d[1]))
+        .y((d) => yScale(d[0]))
+        .curve(d3.curveBasis);
+
+      g.append("path")
+        .datum(kdeDataY)
+        .attr("class", "kde-y")
+        .attr("d", lineY)
+        .attr("fill", "none")
+        .attr("stroke", color)
+        .attr("stroke-width", 1);
     });
-  }, [width, height, datasets, labels, plotType, p]);
+  }, [width, height, datasets, labels, plotType, p, bandwidth]);
 
   return (
     <div>
