@@ -36,9 +36,17 @@ const datasets = [
       [0.8, 1],
     ]
   ),
+  generateRandomDataset(
+    150,
+    [3, 0],
+    [
+      [1, 0],
+      [0, 1],
+    ]
+  ),
 ];
 
-const labels = ["Dataset 1", "Dataset 2"];
+const labels = ["Dataset 1", "Dataset 2","Dataset3"];
 
 const p = 0.95;
 

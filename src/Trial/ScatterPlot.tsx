@@ -33,6 +33,7 @@ function calculateCovarianceMatrix(
     [covXY, covYY],
   ];
 }
+
 function calculateConfidenceRectangle(
   mu: [number, number],
   sigma: [[number, number], [number, number]],
@@ -93,6 +94,7 @@ function plotErrorEllipse(
 
   return ellipseData;
 }
+
 function kernelDensityEstimator(kernel: (v: number) => number, x: number[]) {
   return function (sample: number[]) {
     return x.map(function (x) {
@@ -100,11 +102,13 @@ function kernelDensityEstimator(kernel: (v: number) => number, x: number[]) {
     });
   };
 }
+
 function epanechnikovKernel(scale: number) {
   return function (u: number) {
     return Math.abs((u /= scale)) <= 1 ? (0.75 * (1 - u * u)) / scale : 0;
   };
 }
+
 const Scatterplot: React.FC<{
   width: number;
   height: number;
@@ -159,25 +163,25 @@ const Scatterplot: React.FC<{
     const xScale = d3
       .scaleLinear()
       .domain([minX - bufferX, maxX + bufferX])
-      .range([0, width]);
+      .range([0, boundsWidth]);
 
     const yScale = d3
       .scaleLinear()
       .domain([minY - bufferY, maxY + bufferY])
-      .range([height, 0]);
+      .range([boundsHeight, 0]);
 
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
     g.append("g")
-      .attr("transform", `translate(0,${height})`)
+      .attr("transform", `translate(0,${boundsHeight})`)
       .call(xAxis)
       .call((g) => g.selectAll(".domain, .tick line").attr("stroke", "#000"))
       .call((g) => g.selectAll(".tick text").attr("fill", "#000"))
       .append("text")
       .attr("class", "x-axis-label")
       .attr("fill", "#000")
-      .attr("x", width / 2)
+      .attr("x", boundsWidth / 2)
       .attr("y", MARGIN.bottom - 1)
       .attr("dy", "1em")
       .style("text-anchor", "middle");
@@ -190,13 +194,12 @@ const Scatterplot: React.FC<{
       .attr("class", "y-axis-label")
       .attr("fill", "#000")
       .attr("transform", "rotate(-90)")
-      .attr("x", -height / 2)
+      .attr("x", -boundsHeight / 2)
       .attr("y", -MARGIN.left + 10)
       .attr("dy", "1em")
       .style("text-anchor", "middle");
 
     datasets.forEach((data, i) => {
-      // console.log(data);
       const color = colors[i % colors.length];
 
       g.selectAll(`.dot${i}`)
@@ -216,19 +219,22 @@ const Scatterplot: React.FC<{
       const legend = g
         .append("g")
         .attr("class", "legend")
-        .attr("transform", `translate(${width - MARGIN.right},${i * 20})`);
+        .attr(
+          "transform",
+          `translate(${boundsWidth - MARGIN.right},${i * 20})`
+        );
 
       legend
         .append("rect")
         .attr("x", MARGIN.right)
-        .attr("y", MARGIN.top -10)
+        .attr("y", MARGIN.top - 10)
         .attr("width", 18)
         .attr("height", 18)
         .style("fill", color);
 
       legend
         .append("text")
-        .attr("x", MARGIN.right -10)
+        .attr("x", MARGIN.right - 10)
         .attr("y", MARGIN.top)
         .attr("dy", ".35em")
         .style("text-anchor", "end")
@@ -242,11 +248,11 @@ const Scatterplot: React.FC<{
             sdMultiplier
           );
           const rectX = xScale(rectData.x);
-          const rectY = yScale(rectData.y + rectData.height); // Adjust y-coordinate to move the rectangle above the data points
+          const rectY = yScale(rectData.y + rectData.height);
           const rectWidth =
             xScale(rectData.x + rectData.width) - xScale(rectData.x);
           const rectHeight =
-            yScale(rectData.y) - yScale(rectData.y + rectData.height); // Invert height to correctly represent the rectangle
+            yScale(rectData.y) - yScale(rectData.y + rectData.height);
 
           g.append("rect")
             .attr("x", rectX)
@@ -279,6 +285,7 @@ const Scatterplot: React.FC<{
             .style("stroke-dasharray", j === 1 ? "4 2" : "none");
         });
       }
+
       const kdeX = kernelDensityEstimator(
         epanechnikovKernel(bandwidth),
         xScale.ticks(100)
@@ -287,35 +294,59 @@ const Scatterplot: React.FC<{
         epanechnikovKernel(bandwidth),
         yScale.ticks(100)
       );
+
       const kdeDataX = kdeX(data.map((d) => d.x));
-      // console.log(kdeDataX);
+      const kdeDataY = kdeY(data.map((d) => d.y));
+
+      const kdeXGroup = svg
+        .append("g")
+        .attr(
+          "transform",
+          `translate(${MARGIN.left},${MARGIN.top + boundsHeight + 40})`
+        );
+
       const lineX = d3
         .line()
         .x((d) => xScale(d[0]))
-        .y((d) => yScale(d[1]))
+        .y((d) => -d[1] * 40)
         .curve(d3.curveBasis);
-      g.append("path")
+
+      kdeXGroup
+        .append("path")
         .datum(kdeDataX)
         .attr("class", "kde-x")
         .attr("d", lineX)
         .attr("fill", "none")
         .attr("stroke", color)
-        .attr("stroke-width", 1);
+        .attr("stroke-width", 2);
 
-      const kdeDataY = kdeY(data.map((d) => d.y));
+      const kdeYGroup = svg
+        .append("g")
+        .attr(
+          "transform",
+          `translate(${MARGIN.left + boundsWidth + 30},${MARGIN.top})`
+        );
+
       const lineY = d3
         .line()
-        .x((d) => xScale(d[1]))
+        .x((d) => d[1] * 40)
         .y((d) => yScale(d[0]))
         .curve(d3.curveBasis);
+      console.log(
+        d3
+          .line()
+          .x((d) => d[1] * 20)
+          .y((d) => yScale(d[0]))
+      );
 
-      g.append("path")
+      kdeYGroup
+        .append("path")
         .datum(kdeDataY)
         .attr("class", "kde-y")
         .attr("d", lineY)
         .attr("fill", "none")
         .attr("stroke", color)
-        .attr("stroke-width", 1);
+        .attr("stroke-width", 2);
     });
   }, [width, height, datasets, labels, plotType, p, bandwidth]);
 
