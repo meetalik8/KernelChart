@@ -3,12 +3,105 @@ import * as d3 from "d3";
 
 const MARGIN = { top: 20, right: 30, bottom: 50, left: 50 };
 
+function calculateMean(dataset: { x: number; y: number }[]): [number, number] {
+  const n = dataset.length;
+  const sumX = dataset.reduce((acc: number, point: any) => acc + point.x, 0);
+  const sumY = dataset.reduce((acc: number, point: any) => acc + point.y, 0);
+  const meanX = sumX / n;
+  const meanY = sumY / n;
+  return [meanX, meanY];
+}
+
+function calculateCovarianceMatrix(
+  dataset: { x: number; y: number }[],
+  mean: [number, number]
+): [[number, number], [number, number]] {
+  const n = dataset.length;
+  let covXX = 0;
+  let covXY = 0;
+  let covYY = 0;
+  for (const point of dataset) {
+    covXX += Math.pow(point.x - mean[0], 2);
+    covXY += (point.x - mean[0]) * (point.y - mean[1]);
+    covYY += Math.pow(point.y - mean[1], 2);
+  }
+  covXX /= n;
+  covXY /= n;
+  covYY /= n;
+  return [
+    [covXX, covXY],
+    [covXY, covYY],
+  ];
+}
+function calculateConfidenceRectangle(
+  mu: [number, number],
+  sigma: [[number, number], [number, number]],
+  sdMultiplier: number
+): { x: number; y: number; width: number; height: number } {
+  const standardDeviationX = Math.sqrt(sigma[0][0]);
+  const standardDeviationY = Math.sqrt(sigma[1][1]);
+  const width = standardDeviationX * 2 * sdMultiplier;
+  const height = standardDeviationY * 2 * sdMultiplier;
+  const x = mu[0] - width / 2;
+  const y = mu[1] - height / 2;
+  return { x, y, width, height };
+}
+
+function plotErrorEllipse(
+  mu: [number, number],
+  Sigma: [[number, number], [number, number]],
+  p: number = 0.95
+): { cx: number; cy: number; rx: number; ry: number; angle: number } {
+  const s = -2 * Math.log(1 - p);
+  const a = Sigma[0][0];
+  const b = Sigma[0][1];
+  const c = Sigma[1][0];
+  const d = Sigma[1][1];
+
+  const tmp = Math.sqrt((a - d) * (a - d) + 4 * b * c);
+  const V = [
+    [-(tmp - a + d) / (2 * c), (tmp + a - d) / (2 * c)],
+    [1, 1],
+  ];
+  const sqrtD = [
+    Math.sqrt((s * (a + d - tmp)) / 2),
+    Math.sqrt((s * (a + d + tmp)) / 2),
+  ];
+
+  const norm1 = Math.hypot(V[0][0], 1);
+  const norm2 = Math.hypot(V[0][1], 1);
+  V[0][0] /= norm1;
+  V[1][0] /= norm1;
+  V[0][1] /= norm2;
+  V[1][1] /= norm2;
+
+  const ndx = sqrtD[0] < sqrtD[1] ? 1 : 0;
+
+  const x1 = mu[0] + V[0][ndx] * sqrtD[ndx];
+  const y1 = mu[1] + V[1][ndx] * sqrtD[ndx];
+
+  const x2 = mu[0] + V[0][1 - ndx] * sqrtD[1 - ndx];
+  const y2 = mu[1] + V[1][1 - ndx] * sqrtD[1 - ndx];
+
+  const ellipseData = {
+    cx: mu[0],
+    cy: mu[1],
+    rx: Math.hypot(x1 - mu[0], y1 - mu[1]),
+    ry: Math.hypot(x2 - mu[0], y2 - mu[1]),
+    angle: (Math.atan2(y1 - mu[1], x1 - mu[0]) * 180) / Math.PI,
+  };
+
+  return ellipseData;
+}
+
 const Scatterplot: React.FC<{
   width: number;
   height: number;
   datasets: { x: number; y: number }[][];
   labels: string[];
-}> = ({ width, height, datasets, labels }) => {
+  plotType: "ellipse" | "rectangle";
+  p?: number;
+}> = ({ width, height, datasets, labels, plotType, p = 0.95 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
@@ -27,7 +120,14 @@ const Scatterplot: React.FC<{
 
     const colors = d3.schemeCategory10;
 
-    // Calculate the maximum and minimum values of x and y across all datasets
+    const mu: [number, number][] = datasets.map((dataset) =>
+      calculateMean(dataset)
+    );
+
+    const Sigma = datasets.map((dataset, index) =>
+      calculateCovarianceMatrix(dataset, mu[index])
+    );
+
     const maxX = d3.max(datasets.flat(), (d) => d.x) || 10;
     const maxY = d3.max(datasets.flat(), (d) => d.y) || 10;
     const minX = d3.min(datasets.flat(), (d) => d.x) || 0;
@@ -37,12 +137,12 @@ const Scatterplot: React.FC<{
     const bufferY = 3;
     const xScale = d3
       .scaleLinear()
-      .domain([minX, maxX + bufferX])
+      .domain([minX - bufferX, maxX + bufferX])
       .range([0, width]);
 
     const yScale = d3
       .scaleLinear()
-      .domain([minY, maxY + bufferY])
+      .domain([minY - bufferY, maxY + bufferY])
       .range([height, 0]);
 
     const xAxis = d3.axisBottom(xScale);
@@ -77,7 +177,6 @@ const Scatterplot: React.FC<{
     datasets.forEach((data, i) => {
       const color = colors[i % colors.length];
 
-      // Render circles for each data point
       g.selectAll(`.dot${i}`)
         .data(data)
         .enter()
@@ -85,12 +184,12 @@ const Scatterplot: React.FC<{
         .attr("class", `dot${i}`)
         .attr("cx", (d) => xScale(d.x))
         .attr("cy", (d) => yScale(d.y))
-        .attr("stroke", color) // Set stroke color
-        .attr("stroke-opacity", 1) // Set stroke opacity to 1
+        .attr("stroke", color)
+        .attr("stroke-opacity", 1)
         .attr("stroke-width", 1)
-        .attr("r", 5)
+        .attr("r", 2.5)
         .attr("fill", color)
-        .attr("fill-opacity", 0.2);
+        .attr("fill-opacity", 0.5);
 
       const legend = g
         .append("g")
@@ -110,18 +209,54 @@ const Scatterplot: React.FC<{
         .attr("y", 9)
         .attr("dy", ".35em")
         .style("text-anchor", "end")
-        .text(`Dataset ${i + 1}`);
-      // Add labels
-      // g.append("text")
-      //   .attr("class", `label${i}`)
-      //   .attr("x", width - 60)
-      //   .attr("y", height - i * 20)
-      //   .text(labels[i])
-      //   .style("font-size", "12px")
-      //   .style("fill", color);
+        .text(labels[i]);
+      if (plotType === "rectangle") {
+        [2, 3].forEach((sdMultiplier) => {
+          const rectData = calculateConfidenceRectangle(
+            mu[i],
+            Sigma[i],
+            sdMultiplier
+          );
+          const rectX = xScale(rectData.x);
+          const rectY = yScale(rectData.y + rectData.height); // Adjust y-coordinate to move the rectangle above the data points
+          const rectWidth =
+            xScale(rectData.x + rectData.width) - xScale(rectData.x);
+          const rectHeight =
+            yScale(rectData.y) - yScale(rectData.y + rectData.height); // Invert height to correctly represent the rectangle
+
+          g.append("rect")
+            .attr("x", rectX)
+            .attr("y", rectY)
+            .attr("width", rectWidth)
+            .attr("height", rectHeight)
+            .style("fill", "none")
+            .style("stroke", color)
+            .style("stroke-width", 1.5)
+            .style("stroke-dasharray", sdMultiplier === 3 ? "4 2" : "none");
+        });
+      } else if (plotType === "ellipse") {
+        [0.95, 0.99].forEach((confidence, j) => {
+          const ellipseData = plotErrorEllipse(mu[i], Sigma[i], confidence);
+
+          const cx = xScale(ellipseData.cx);
+          const cy = yScale(ellipseData.cy);
+          const rx = xScale(mu[i][0] + ellipseData.rx) - xScale(mu[i][0]);
+          const ry = yScale(mu[i][1]) - yScale(mu[i][1] + ellipseData.ry);
+
+          g.append("ellipse")
+            .attr("cx", cx)
+            .attr("cy", cy)
+            .attr("rx", Math.abs(rx))
+            .attr("ry", Math.abs(ry))
+            .attr("transform", `rotate(${ellipseData.angle}, ${cx}, ${cy})`)
+            .style("fill", "none")
+            .style("stroke", color)
+            .style("stroke-width", 1.5)
+            .style("stroke-dasharray", j === 1 ? "4 2" : "none");
+        });
+      }
     });
-    
-  }, [width, height, datasets, labels]);
+  }, [width, height, datasets, labels, plotType, p]);
 
   return (
     <div>
