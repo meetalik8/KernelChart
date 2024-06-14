@@ -141,7 +141,10 @@ const Scatterplot: React.FC<{
       .attr("width", width + MARGIN.left + MARGIN.right)
       .attr("height", height + MARGIN.top + MARGIN.bottom)
       .append("g")
-      .attr("transform", `translate(${MARGIN.left},${MARGIN.top})`);
+      .attr(
+        "transform",
+        `translate(${MARGIN.left},${MARGIN.bottom + 20})`
+      );
 
     const colors = d3.schemeCategory10;
 
@@ -302,7 +305,7 @@ const Scatterplot: React.FC<{
         .append("g")
         .attr(
           "transform",
-          `translate(${MARGIN.left},${MARGIN.top + boundsHeight + 40})`
+          `translate(${MARGIN.left},${MARGIN.bottom})`
         );
 
       const lineX = d3
@@ -324,7 +327,7 @@ const Scatterplot: React.FC<{
         .append("g")
         .attr(
           "transform",
-          `translate(${MARGIN.left + boundsWidth + 30},${MARGIN.top})`
+          `translate(${MARGIN.left + boundsWidth + 30},${MARGIN.bottom})`
         );
 
       const lineY = d3
@@ -332,12 +335,6 @@ const Scatterplot: React.FC<{
         .x((d) => d[1] * 40)
         .y((d) => yScale(d[0]))
         .curve(d3.curveBasis);
-      console.log(
-        d3
-          .line()
-          .x((d) => d[1] * 20)
-          .y((d) => yScale(d[0]))
-      );
 
       kdeYGroup
         .append("path")
