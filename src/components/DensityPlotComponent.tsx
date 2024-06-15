@@ -32,7 +32,7 @@ const DensityPlotComponent = () => {
       <h2>Data Density Plot</h2>
       <DensityPlotter
         bandwidth={4}
-        datasets={[Data2]}
+        datasets={[Data1, Data2]}
         labels={[Data2Labels]}
       />
     </div>
