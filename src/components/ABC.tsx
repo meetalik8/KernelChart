@@ -41,7 +41,7 @@ const ABC: React.FC = () => {
 
     const y = d3.scaleLinear().domain([0, 1]).range([height, 0]);
 
-    const xAxis = d3.axisBottom(x).tickFormat((d, i) => {
+    const xAxis = d3.axisBottom(x).tickFormat((_, i) => {
       const bin = data1[i] || data2[i];
       return bin
         ? `[${Math.floor(bin.x0 ?? 0)}, ${Math.floor(bin.x1 ?? 0)})`

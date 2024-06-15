@@ -1,7 +1,6 @@
 import React from "react";
 import Scatterplot from "./ScatterPlot";
 import * as d3 from "d3";
-import DensityPlotter from "../components/DensityPlotter";
 
 // Function to generate random dataset
 const generateRandomDataset = (

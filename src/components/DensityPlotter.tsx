@@ -198,7 +198,7 @@ const DensityPlotter: React.FC<{
         .attr("stroke", "black")
         .attr("r", 3)
         .attr("fill", color)
-        .on("mouseover", function (event, d) {
+        .on("mouseover", function (_, d) {
           d3.select(this).attr("r", 6).attr("fill", color);
           let xPos = x(d.x);
           let yPos = yKDE(d.y);
@@ -215,7 +215,7 @@ const DensityPlotter: React.FC<{
             xPos = width - 100;
           }
           const label =
-            labels[i].find((item, index) => datasets[i][index] === d.x) || "";
+            labels[i].find((_, index) => datasets[i][index] === d.x) || "";
           g.select(".tooltip").remove();
           g.append("text")
             .attr("class", "tooltip")

@@ -49,7 +49,7 @@ useEffect(() => {
       .attr("r", 8)
       .attr("fill", "green")
       .attr("opacity", 0.5)
-      .on("mouseover", function (event, d) {
+      .on("mouseover", function () {
         const xPos = parseFloat(d3.select(this).attr("cx")) + margin.left;
         const yPos = parseFloat(d3.select(this).attr("cy")) + margin.top - 10;
         g.append("text")
@@ -139,7 +139,7 @@ useEffect(() => {
       .attr("cx", (d) => x(d.x))
       .attr("cy", (d) => yKDE(d.y))
       .attr("r", 3)
-      .on("mouseover", function (event, d) {
+      .on("mouseover", function (_, d) {
         d3.select(this).attr("r", 6).attr("fill", "orange");
         let xPos = x(d.x);
         let yPos = yKDE(d.y);
@@ -156,7 +156,7 @@ useEffect(() => {
           xPos = width - 100;
         }
         const label =
-          DataLabels.find((item, index) => Data[index] === d.x) || "";
+          DataLabels.find((_, index) => Data[index] === d.x) || "";
          g.append("text")
             .attr("class", "tooltip")
             .attr("x", xPos + 10)
@@ -164,7 +164,7 @@ useEffect(() => {
             .attr("fill", "black")
             .text(`${label}(${d.x.toFixed(3)})`);
         })
-      .on("mouseout", function (event, d) {
+      .on("mouseout", function () {
         d3.select(this).attr("r", 3).attr("fill", "red");
         g.select(".tooltip").remove();
       });
