@@ -1,6 +1,5 @@
 import "./App.css";
-import ScatterPlotComponent from "./components/ScatterPlotComponent";
-import MyComponent from "./Trial/MyComponent";
+import MyComponent from "./components/MyComponent";
 import DensityPlotComponent from "./components/DensityPlotComponent";
 
 
@@ -10,8 +9,7 @@ const App = () => {
   return (
     <div>
       <MyComponent />
-      {/* <DensityPlotComponent /> */}
-      {/* <ScatterPlotComponent /> */}
+      <DensityPlotComponent />
     </div>
   );
 };
