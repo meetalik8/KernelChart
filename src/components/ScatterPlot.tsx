@@ -109,6 +109,13 @@ function epanechnikovKernel(scale: number) {
   };
 }
 
+function calculateScale(lenX:number){
+  if(lenX<100){
+    return 10;
+  } else {
+    return 30;
+  }
+}
 const Scatterplot: React.FC<{
   width: number;
   height: number;
@@ -161,8 +168,9 @@ const Scatterplot: React.FC<{
     const minX = d3.min(datasets.flat(), (d) => d.x) || 0;
     const minY = d3.min(datasets.flat(), (d) => d.y) || 0;
 
-    const bufferX = 3;
-    const bufferY = 3;
+    const bufferX = 0.3*maxX;
+    const bufferY = 0.3*maxY;
+    console.log(minX - bufferX);
     const xScale = d3
       .scaleLinear()
       .domain([minX - bufferX, maxX + bufferX])
@@ -308,10 +316,12 @@ const Scatterplot: React.FC<{
           `translate(${MARGIN.left},${MARGIN.bottom})`
         );
 
+      const scaleM = calculateScale(kdeDataX.length);
+      console.log(kdeDataX.length);
       const lineX = d3
         .line()
         .x((d) => xScale(d[0]))
-        .y((d) => -d[1] * 40)
+        .y((d) => -d[1] *scaleM)
         .curve(d3.curveBasis);
 
       kdeXGroup
@@ -330,9 +340,10 @@ const Scatterplot: React.FC<{
           `translate(${MARGIN.left + boundsWidth + 30},${MARGIN.bottom})`
         );
 
+      
       const lineY = d3
         .line()
-        .x((d) => d[1] * 40)
+        .x((d) => d[1] * scaleM)
         .y((d) => yScale(d[0]))
         .curve(d3.curveBasis);
 

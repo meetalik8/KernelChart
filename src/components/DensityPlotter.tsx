@@ -69,16 +69,16 @@ const DensityPlotter: React.FC<{
     const defaultbandwidth = bandwidth;
     const allData = datasets.flat();
     const meanData = d3.mean(allData)!;
-    console.log(`Mean of all ${meanData}`);
+    // console.log(`Mean of all ${meanData}`);
     const stdDevData = d3.deviation(allData)!;
     const multiplier = calculateMultiplier(stdDevData);
     const xExtent = [
       meanData - multiplier * stdDevData,
       meanData + multiplier * stdDevData,
     ];
-    console.log(`Extent: ${xExtent}`);
-    console.log(`Std of all ${stdDevData}`);
-    console.log(`Multiplier ${multiplier}`);
+    // console.log(`Extent: ${xExtent}`);
+    // console.log(`Std of all ${stdDevData}`);
+    // console.log(`Multiplier ${multiplier}`);
 
     const maxStdDev = d3.max(datasets.map((data) => d3.deviation(data) || 0))!;
 
@@ -90,7 +90,7 @@ const DensityPlotter: React.FC<{
     const x = d3.scaleLinear().domain(xExtentAdjusted).range([0, width]);
 
     const fbandwidth = calculateBandwidth(defaultbandwidth, datasets);
-    console.log(`final bandwidth ${fbandwidth}`);
+    // console.log(`final bandwidth ${fbandwidth}`);
     const kernel = epanechnikovKernel(fbandwidth);
     const kde = kernelDensityEstimator(kernel, x.ticks(100));
     const kdeDataAll = datasets.map((data) => kde(data));
@@ -138,12 +138,12 @@ const DensityPlotter: React.FC<{
       .curve(d3.curveCardinal);
 
     datasets.forEach((data, i) => {
-      console.log(data);
+      // console.log(data);
       const mean = d3.mean(data)!;
       const stdDev = d3.deviation(data)!;
       const color = colors[i % colors.length];
-      console.log(`Mean of single data: ${mean}`);
-      console.log(`STDdev of single data ${stdDev} `);
+      // console.log(`Mean of single data: ${mean}`);
+      // console.log(`STDdev of single data ${stdDev} `);
 
       // mean circle
       g.append("circle")
