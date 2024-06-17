@@ -45,6 +45,7 @@ function calculateConfidenceRectangle(
   const height = standardDeviationY * 2 * sdMultiplier;
   const x = mu[0] - width / 2;
   const y = mu[1] - height / 2;
+  console.log(`X: ${x} , Y: ${y}, Width: ${width}, Height: ${height}`);
   return { x, y, width, height };
 }
 
@@ -59,6 +60,20 @@ function plotErrorEllipse(
   const c = Sigma[1][0];
   const d = Sigma[1][1];
 
+  const det = a * d - b * c;
+  const trace = a + d;
+
+  if (det <= 0 || trace <= 0) {
+    const dx = Math.max(1, Math.sqrt(a * s));
+    const dy = Math.max(1, Math.sqrt(d * s));
+    return {
+      cx: mu[0],
+      cy: mu[1],
+      rx: dx,
+      ry: dy,
+      angle: 0, 
+    };
+  }
   const tmp = Math.sqrt((a - d) * (a - d) + 4 * b * c);
   const V = [
     [-(tmp - a + d) / (2 * c), (tmp + a - d) / (2 * c)],
@@ -91,9 +106,9 @@ function plotErrorEllipse(
     ry: Math.hypot(x2 - mu[0], y2 - mu[1]),
     angle: (Math.atan2(y1 - mu[1], x1 - mu[0]) * 180) / Math.PI,
   };
-
   return ellipseData;
 }
+
 
 function kernelDensityEstimator(kernel: (v: number) => number, x: number[]) {
   return function (sample: number[]) {
@@ -116,6 +131,19 @@ function calculateScale(lenX:number){
     return 30;
   }
 }
+
+function calculateBufferMultiplier(rangeX:number,rangeY:number){
+  if(rangeX>30 && rangeX<45 || rangeY >30 && rangeY<45){
+    return 0.5;
+  }
+  else if(rangeX >=45 || rangeY >=45){
+    return 0.8;
+  }
+  else {
+    return 0.1;
+  }
+}
+
 const Scatterplot: React.FC<{
   width: number;
   height: number;
@@ -168,9 +196,15 @@ const Scatterplot: React.FC<{
     const minX = d3.min(datasets.flat(), (d) => d.x) || 0;
     const minY = d3.min(datasets.flat(), (d) => d.y) || 0;
 
-    const bufferX = 0.3*maxX;
-    const bufferY = 0.3*maxY;
-    console.log(minX - bufferX);
+    const rangeX = maxX - minX;
+    const rangeY = maxY - minY;
+    console.log(rangeX);
+    console.log(rangeY);
+
+    const bufferMultiplier = calculateBufferMultiplier(rangeX,rangeY);
+   const bufferX = Math.max(bufferMultiplier * rangeX, 10); 
+   const bufferY = Math.max(bufferMultiplier * rangeY, 10);
+
     const xScale = d3
       .scaleLinear()
       .domain([minX - bufferX, maxX + bufferX])
@@ -278,6 +312,7 @@ const Scatterplot: React.FC<{
       } else if (plotType === "ellipse") {
         [0.95, 0.99].forEach((confidence, j) => {
           const ellipseData = plotErrorEllipse(mu[i], Sigma[i], confidence);
+          console.log(ellipseData)
 
           const cx = xScale(ellipseData.cx);
           const cy = yScale(ellipseData.cy);
@@ -313,11 +348,11 @@ const Scatterplot: React.FC<{
         .append("g")
         .attr(
           "transform",
-          `translate(${MARGIN.left},${MARGIN.bottom})`
+          `translate(${MARGIN.left},${MARGIN.bottom +20})`
         );
 
       const scaleM = calculateScale(kdeDataX.length);
-      console.log(kdeDataX.length);
+
       const lineX = d3
         .line()
         .x((d) => xScale(d[0]))
@@ -337,7 +372,7 @@ const Scatterplot: React.FC<{
         .append("g")
         .attr(
           "transform",
-          `translate(${MARGIN.left + boundsWidth + 30},${MARGIN.bottom})`
+          `translate(${MARGIN.left + boundsWidth},${MARGIN.bottom+20})`
         );
 
       
