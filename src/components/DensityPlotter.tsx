@@ -10,15 +10,6 @@ function kernelDensityEstimator(kernel: (v: number) => number, x: number[]) {
   };
 }
 
-// function epanechnikovKernel(defaultScale: number, extremeScale: number) {
-//   return function (u: number) {
-//     const scale = Math.abs(u) >= 1000000 ? extremeScale : defaultScale;
-//     console.log(`Scale: ${scale}`)
-//     // console.log(Math.abs((u /= scale)) <= 1 ? (0.75 * (1 - u * u)) / scale:0)
-//     return Math.abs((u /= scale)) <= 1 ? (0.75 * (1 - u * u)) / scale : 0;
-//   };
-// }
-
 function epanechnikovKernel(scale: number) {
   return function (u: number) {
     return Math.abs((u /= scale)) <= 1 ? (0.75 * (1 - u * u)) / scale : 0;
@@ -42,10 +33,10 @@ function calculateMultiplier(stdDevData: number): number {
   }
 }
 const DensityPlotter: React.FC<{
-  bandwidth: number;
+  bandwidth?: number;
   datasets: number[][];
   labels: string[][];
-}> = ({ bandwidth, datasets, labels }) => {
+}> = ({ bandwidth=4, datasets, labels }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const margin = { top: 20, right: 30, bottom: 50, left: 50 };
   const width = 960 - margin.left - margin.right;

@@ -5,8 +5,8 @@ const MARGIN = { top: 20, right: 30, bottom: 50, left: 50 };
 
 function calculateMean(dataset: { x: number; y: number }[]): [number, number] {
   const n = dataset.length;
-  const sumX = dataset.reduce((acc: number, point: any) => acc + point.x, 0);
-  const sumY = dataset.reduce((acc: number, point: any) => acc + point.y, 0);
+  const sumX = dataset.reduce((acc: number, point) => acc + point.x, 0);
+  const sumY = dataset.reduce((acc: number, point) => acc + point.y, 0);
   const meanX = sumX / n;
   const meanY = sumY / n;
   return [meanX, meanY];
@@ -45,7 +45,7 @@ function calculateConfidenceRectangle(
   const height = standardDeviationY * 2 * sdMultiplier;
   const x = mu[0] - width / 2;
   const y = mu[1] - height / 2;
-  console.log(`X: ${x} , Y: ${y}, Width: ${width}, Height: ${height}`);
+  // console.log(`X: ${x} , Y: ${y}, Width: ${width}, Height: ${height}`);
   return { x, y, width, height };
 }
 
@@ -124,13 +124,14 @@ function epanechnikovKernel(scale: number) {
   };
 }
 
-function calculateScale(lenX:number){
-  if(lenX<100){
-    return 10;
-  } else {
-    return 30;
-  }
-}
+// function calculateScaleX(lenX:number,boundsHeight:number){
+//   console.log(lenX);
+//   if(lenX<100){
+//     return 200;
+//   } else {
+//     return 250;
+//   }
+// }
 
 function calculateBufferMultiplier(rangeX:number,rangeY:number){
   if(rangeX>30 && rangeX<45 || rangeY >30 && rangeY<45){
@@ -173,12 +174,12 @@ const Scatterplot: React.FC<{
     const boundsWidth = width - MARGIN.right - MARGIN.left;
     const boundsHeight = height - MARGIN.top - MARGIN.bottom;
     const g = svg
-      .attr("width", width + MARGIN.left + MARGIN.right)
-      .attr("height", height + MARGIN.top + MARGIN.bottom)
+      .attr("width", width + MARGIN.left + MARGIN.right+0.4*boundsWidth)
+      .attr("height", height + MARGIN.top + MARGIN.bottom+0.4*boundsHeight)
       .append("g")
       .attr(
         "transform",
-        `translate(${MARGIN.left},${MARGIN.bottom + 20})`
+        `translate(${MARGIN.left},${MARGIN.bottom+100})`
       );
 
     const colors = d3.schemeCategory10;
@@ -198,8 +199,8 @@ const Scatterplot: React.FC<{
 
     const rangeX = maxX - minX;
     const rangeY = maxY - minY;
-    console.log(rangeX);
-    console.log(rangeY);
+    // console.log(rangeX);
+    // console.log(rangeY);
 
     const bufferMultiplier = calculateBufferMultiplier(rangeX,rangeY);
    const bufferX = Math.max(bufferMultiplier * rangeX, 10); 
@@ -213,13 +214,13 @@ const Scatterplot: React.FC<{
     const yScale = d3
       .scaleLinear()
       .domain([minY - bufferY, maxY + bufferY])
-      .range([boundsHeight, 0]);
+      .range([boundsHeight+ 0.2*boundsHeight, 0]);
 
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
     g.append("g")
-      .attr("transform", `translate(0,${boundsHeight})`)
+      .attr("transform", `translate(0,${boundsHeight+0.2*boundsHeight})`)
       .call(xAxis)
       .call((g) => g.selectAll(".domain, .tick line").attr("stroke", "#000"))
       .call((g) => g.selectAll(".tick text").attr("fill", "#000"))
@@ -312,7 +313,7 @@ const Scatterplot: React.FC<{
       } else if (plotType === "ellipse") {
         [0.95, 0.99].forEach((confidence, j) => {
           const ellipseData = plotErrorEllipse(mu[i], Sigma[i], confidence);
-          console.log(ellipseData)
+          // console.log(ellipseData)
 
           const cx = xScale(ellipseData.cx);
           const cy = yScale(ellipseData.cy);
@@ -348,10 +349,12 @@ const Scatterplot: React.FC<{
         .append("g")
         .attr(
           "transform",
-          `translate(${MARGIN.left},${MARGIN.bottom +20})`
+          `translate(${MARGIN.left},${MARGIN.bottom+0.3*boundsHeight})`
         );
 
-      const scaleM = calculateScale(kdeDataX.length);
+      const scaleM = 3*height;
+      console.log(boundsHeight);
+      console.log(scaleM);
 
       const lineX = d3
         .line()
@@ -372,7 +375,7 @@ const Scatterplot: React.FC<{
         .append("g")
         .attr(
           "transform",
-          `translate(${MARGIN.left + boundsWidth},${MARGIN.bottom+20})`
+          `translate(${MARGIN.left + boundsWidth},${MARGIN.bottom+0.3*boundsHeight})`
         );
 
       
