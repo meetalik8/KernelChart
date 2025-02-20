@@ -1,12 +1,12 @@
 import "./App.css";
-import MyComponent from "./components/MyComponent";
 import DensityPlotComponent from "./components/DensityPlotComponent";
-import App2 from "./components/Display";
+import MyComponent from "./components/MyComponent";
 
 const App = () => {
   return (
     <div>
-      <App2 />
+     <DensityPlotComponent />
+     <MyComponent />
     </div>
   );
 };
